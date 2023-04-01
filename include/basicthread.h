@@ -23,7 +23,7 @@ public:
     void start()
     {
         // 创建一个线程对象，执行线程函数
-        // 使用detach模式，防止thread对象销毁后线程被销毁，即thread对象与现线程本身分离
+        // 使用detach模式，防止thread对象销毁后线程被销毁，即thread对象与线程本身分离
         std::thread t(func_, threadId_);
         t.detach();
     }
