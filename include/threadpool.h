@@ -14,7 +14,7 @@
 #include "basicthread.h"
 #include "fixedpool.h"
 #include "cachedpoo.h"
-// #include "activepool.h"
+#include "activepool.h"
 
 /// @brief 线程池运行模式
 enum class PoolMode {
@@ -38,7 +38,7 @@ public:
             pool_ = std::move(std::make_unique<CachedPool>());
             break;
         case PoolMode::MODE_ACTIVE:
-            // pool_ = std::move(std::make_unique<ActivePool>());
+            pool_ = std::move(std::make_unique<ActivePool>());
         default:
             break;
         }

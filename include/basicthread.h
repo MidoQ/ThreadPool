@@ -15,7 +15,7 @@ public:
     {
     }
 
-    ~Thread()
+    virtual ~Thread()
     {
     }
 
@@ -35,7 +35,7 @@ public:
         return threadId_;
     }
 
-private:
+protected:
     static int threadIdBase;
     int threadId_;
     ThreadFunc func_;
