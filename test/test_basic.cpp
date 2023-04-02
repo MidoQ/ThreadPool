@@ -23,7 +23,7 @@ std::string taskFunc2(long a, const std::string& s)
 int main(int argc, char* argv[])
 {
     // ThreadPool pool;
-    ThreadPool pool(PoolMode::MODE_CACHED);
+    ThreadPool pool(PoolMode::MODE_ACTIVE);
     pool.setThreadIdleTimeout(60);
     pool.setThreadMaxCount(10);
     pool.start(4);
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     std::cout << str4.get() << std::endl;
 
     char a;
-    std::cout << "Press any button to exit...";
+    std::cout << "Press Enter to exit...";
     std::cin.get(a);
     return 0;
 }
