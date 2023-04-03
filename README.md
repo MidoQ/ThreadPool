@@ -1,66 +1,23 @@
 # 基于C++14的线程池
 
+- [基于C++14的线程池](#基于c14的线程池)
+  - [feature](#feature)
+  - [性能优化](#性能优化)
+    - [空任务测试](#空任务测试)
+    - [性能差异分析](#性能差异分析)
+      - [on-cpu 测试](#on-cpu-测试)
+      - [off-cpu 测试](#off-cpu-测试)
+  - [环境要求](#环境要求)
+  - [使用方法](#使用方法)
+  - [说明](#说明)
+
 ## feature
 
-+ 支持fixed/cached/active模式
-  + fixed 模式：线程数固定，多个工作线程从**单个任务队列**中取任务，用户线程（任务提交线程）和工作线程之间通过互斥锁和条件变量进行通信。
-  + cached 模式：在 fixed 模式的基础上，可根据任务数**动态增加线程**，并在长时间空闲后自动销毁。
-  + active 模式：每个工作线程均具有自身的公共队列和私有队列，用户线程轮询各个线程并将任务提交到公共队列，尽量实现**负载均衡**；双队列通过**乒乓缓冲**的机制实现**读写分离**。
-+ 支持任意参数和任意返回值的任务提交
-
-## 环境要求
-
-+ gcc 6.1 及以上
-+ cmake
-
-## 使用方法
-
-在源文件中包含 threadpool.h 即可。
-
-使用示例：
-
-```cpp
-// #include [some headers]
-#include "threadpool.h"
-
-int func(int a, int b, int c)
-{
-    return std::to_string(a) + std::to_string(b) + std::to_string(c);
-}
-
-int main()
-{
-    int tCount = std::thread::hardware_concurrency();
-    ThreadPool pool(PoolMode::MODE_ACTIVE);
-    pool.start(tCount);
-
-    std::future<std::string> res1 = pool.submitTask(func, 1, 2, 3);
-    std::future<int> res2 = pool.submitTask([](int num) -> int { return 123 + num; }, 666);
-
-    return 0;
-}
-
-```
-
-编译示例：
-
-```sh
-mkdir build
-cd build
-cmake ..
-make
-```
-
-## 说明
-
-代码中使用到的C++14语法仅限`std::make_unique`，若使用C++11，可参考以下实现：
-
-```cpp
-template<typename T, typename ...Args>
-std::unique_ptr<T> make_unique( Args&& ...args ) {
-return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
-}
-```
+- 支持fixed/cached/active模式
+  - fixed 模式：线程数固定，多个工作线程从**单个任务队列**中取任务，用户线程（任务提交线程）和工作线程之间通过互斥锁和条件变量进行通信。
+  - cached 模式：在 fixed 模式的基础上，可根据任务数**动态增加线程**，并在长时间空闲后自动销毁。
+  - active 模式：每个工作线程均具有自身的公共队列和私有队列，用户线程轮询各个线程并将任务提交到公共队列，尽量实现**负载均衡**；双队列通过**乒乓缓冲**的机制实现**读写分离**。
+- 支持任意参数和任意返回值的任务提交
 
 ## 性能优化
 
@@ -122,7 +79,7 @@ perf script -i perf_oncpu.data > perf_oncpu.stack
 
 然而，由于空任务测试中并没有涉及大量计算或IO，性能瓶颈可能更多是由互斥锁的等待造成的，所以还需要进行 off-cpu 测试。
 
-### off-cpu 测试
+#### off-cpu 测试
 
 一般使用 bcc-tools 中的 offcputime 进行 off-cpu 采样。由于需要运行程序并追踪进程 PID ，所以将下面的语句写到脚本里一次运行：
 
@@ -150,9 +107,65 @@ active 模式的出现就是为了解决上述问题。相比 fixed/cached 模�
 </figure>
 </div>
 
+<br></br>
+
 <div align='center'>
 <figure>
     <img src="https://midoq-image-host.oss-cn-hangzhou.aliyuncs.com/images/2023-04-03-13-05-50.png" width=%>
     <figcaption>active 模式线程竞争关系示意图</figcaption>
 </figure>
 </div>
+
+## 环境要求
+
+- gcc 6.1 及以上
+- cmake
+
+## 使用方法
+
+在源文件中包含 threadpool.h 即可。
+
+使用示例：
+
+```cpp
+// #include [some headers]
+#include "threadpool.h"
+
+int func(int a, int b, int c)
+{
+    return std::to_string(a) + std::to_string(b) + std::to_string(c);
+}
+
+int main()
+{
+    int tCount = std::thread::hardware_concurrency();
+    ThreadPool pool(PoolMode::MODE_ACTIVE);
+    pool.start(tCount);
+
+    std::future<std::string> res1 = pool.submitTask(func, 1, 2, 3);
+    std::future<int> res2 = pool.submitTask([](int num) -> int { return 123 + num; }, 666);
+
+    return 0;
+}
+
+```
+
+编译示例：
+
+```sh
+mkdir build
+cd build
+cmake ..
+make
+```
+
+## 说明
+
+代码中使用到的C++14语法仅限`std::make_unique`，若使用C++11，可参考以下实现：
+
+```cpp
+template<typename T, typename ...Args>
+std::unique_ptr<T> make_unique( Args&& ...args ) {
+return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+}
+```
